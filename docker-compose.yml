@@ -1,0 +1,27 @@
+services:
+  ia-futurista:
+    build: .
+    container_name: ia-futurista
+    ports:
+      - "8742:8742"
+    volumes:
+      - ./projetos:/app/projetos
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=qwen2.5-coder:7b
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # Opcional: Ollama dentro do Docker (descomente se não tiver Ollama no Windows)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama-futurista
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+
+# volumes:
+#   ollama_data:
