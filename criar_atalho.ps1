@@ -1,39 +1,45 @@
 # -*- coding: utf-8 -*-
-# Cria atalho IA Futurista na Area de Trabalho
-$ErrorActionPreference = "Stop"
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# Criar atalho na Area de Trabalho para IA Futurista
 
-$PastaApp   = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Desktop    = [Environment]::GetFolderPath("Desktop")
-$NomeAtalho = "IA Futurista"
-$CaminhoBat = Join-Path $PastaApp "abrir_ia.bat"
+$Desktop = [Environment]::GetFolderPath("Desktop")
+$ScriptPath = Get-Location
+$BatchFile = Join-Path $ScriptPath "iniciar_ia_futurista.bat"
 
-# Fallback se rodou de D:\IA_Futurista
-if (-not (Test-Path $CaminhoBat)) {
-    if (Test-Path "D:\IA_Futurista\abrir_ia.bat") {
-        $PastaApp   = "D:\IA_Futurista"
-        $CaminhoBat = "D:\IA_Futurista\abrir_ia.bat"
-    } elseif (Test-Path "C:\IA_Futurista\abrir_ia.bat") {
-        $PastaApp   = "C:\IA_Futurista"
-        $CaminhoBat = "C:\IA_Futurista\abrir_ia.bat"
-    }
-}
-
-$Atalho1 = Join-Path $Desktop "$NomeAtalho.lnk"
-$Atalho2 = Join-Path $Desktop "Futuristico.lnk"
-
-$Wsh = New-Object -ComObject WScript.Shell
-
-foreach ($path in @($Atalho1, $Atalho2)) {
-    $s = $Wsh.CreateShortcut($path)
-    $s.TargetPath       = $CaminhoBat
-    $s.WorkingDirectory = $PastaApp
-    $s.Description      = "IA Futurista — Agente Cursor local (porta 8742)"
-    $s.IconLocation     = "$env:SystemRoot\System32\imageres.dll,109"
-    $s.Save()
-    Write-Host "Atalho criado: $path" -ForegroundColor Green
-}
-
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  Criando Atalho na Area de Trabalho" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Pronto! Clique duplo em 'IA Futurista' ou 'Futuristico' na Area de Trabalho." -ForegroundColor Cyan
-Start-Process $CaminhoBat
+
+# Verificar se arquivo existe
+if (-Not (Test-Path $BatchFile)) {
+    Write-Host "[ERRO] Arquivo nao encontrado: $BatchFile" -ForegroundColor Red
+    exit 1
+}
+
+# Criar COM object para atalho
+$WshShell = New-Object -ComObject WScript.Shell
+$ShortcutPath = Join-Path $Desktop "IA Futurista.lnk"
+
+Write-Host "[*] Criando atalho..." -ForegroundColor Yellow
+Write-Host "    De: $BatchFile"
+Write-Host "    Para: $ShortcutPath"
+
+$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+$Shortcut.TargetPath = $BatchFile
+$Shortcut.WorkingDirectory = $ScriptPath
+$Shortcut.Description = "Inicia a IA Futurista localmente"
+$Shortcut.IconLocation = "C:\Windows\System32\cmd.exe,0"  # Ícone do cmd
+$Shortcut.Save()
+
+Write-Host "[OK] Atalho criado com sucesso!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Local: $ShortcutPath" -ForegroundColor Green
+Write-Host ""
+Write-Host "[+] Para usar:" -ForegroundColor Cyan
+Write-Host "    1. Vá à Area de Trabalho"
+Write-Host "    2. Clique duplo em 'IA Futurista'"
+Write-Host "    3. Espere carregar (1-2 minutos na primeira vez)"
+Write-Host "    4. Navegador abre automaticamente"
+Write-Host ""
+
+Read-Host "Pressione Enter para sair"
