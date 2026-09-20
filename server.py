@@ -15,10 +15,12 @@ from pydantic import BaseModel
 import agente as ag
 from identidade import IDENTIDADE, MENSAGEM_BOAS_VINDAS
 from api_automation import router as automation_router
+from api_mouse_keyboard import router as mouse_keyboard_router
 
 app = FastAPI(title="IA Futurista")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(automation_router)
+app.include_router(mouse_keyboard_router)
 
 STATIC = Path(__file__).parent / "static"
 SESSOES: dict[str, dict] = {}
