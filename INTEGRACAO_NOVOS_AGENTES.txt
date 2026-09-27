@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+"""
+INTEGRAÇÃO DOS 5 NOVOS AGENTES
+===============================
+Adicione este código ao final de multiagent_system.py na classe Orquestrador
+"""
+
+# ADICIONE ISTO APÓS O __init__ DO ORQUESTRADOR:
+
+def _criar_agente_contagem(self):
+    """Factory para criar agente de contagem"""
+    try:
+        from agentes.agente_contagem import AgenteContagem
+        return AgenteContagem()
+    except ImportError:
+        self.logger.warning("Agente de Contagem não pode ser carregado")
+        return None
+
+def _criar_agente_sintese(self):
+    """Factory para criar agente de síntese"""
+    try:
+        from agentes.agente_sintese import AgenteSintese
+        return AgenteSintese()
+    except ImportError:
+        self.logger.warning("Agente de Síntese não pode ser carregado")
+        return None
+
+def _criar_agente_validacao(self):
+    """Factory para criar agente de validação"""
+    try:
+        from agentes.agente_validacao import AgenteValidacao
+        return AgenteValidacao()
+    except ImportError:
+        self.logger.warning("Agente de Validação não pode ser carregado")
+        return None
+
+def _criar_agente_traducao(self):
+    """Factory para criar agente de tradução"""
+    try:
+        from agentes.agente_traducao import AgenteTraducao
+        return AgenteTraducao()
+    except ImportError:
+        self.logger.warning("Agente de Tradução não pode ser carregado")
+        return None
+
+def _criar_agente_sentiment(self):
+    """Factory para criar agente de sentiment"""
+    try:
+        from agentes.agente_sentiment import AgenteSentiment
+        return AgenteSentiment()
+    except ImportError:
+        self.logger.warning("Agente de Sentiment não pode ser carregado")
+        return None
+
+# ============================================================================
+# ADICIONE ISTO NA FUNÇÃO _inicializar_agentes (SUBSTITUA A LISTA):
+# ============================================================================
+
+"""
+    def _inicializar_agentes(self):
+        \"\"\"Inicializa todos os agentes\"\"\"
+        agentes = [
+            Interpretador(),
+            NucleoTexto(),
+            MotorProgramacao(),
+            MotorPesquisa(),
+            GestorArquivos(),
+            MotorVisual(),
+            Verificador(),
+            GeradorResposta(),
+            GestorErros(),
+            # Novos agentes (adicione estas 5 linhas)
+            self._criar_agente_contagem(),
+            self._criar_agente_sintese(),
+            self._criar_agente_validacao(),
+            self._criar_agente_traducao(),
+            self._criar_agente_sentiment(),
+        ]
+        
+        for agente in agentes:
+            if agente:
+                self.agentes[agente.nome] = agente
+                self.logger.info(f"Agente inicializado: {agente.nome}")
+"""
