@@ -18,11 +18,13 @@ import agente as ag
 from identidade import IDENTIDADE, MENSAGEM_BOAS_VINDAS
 from api_automation import router as automation_router
 from api_mouse_keyboard import router as mouse_keyboard_router
+from api_multiagent import router as multiagent_router
 
 app = FastAPI(title="IA Futurista")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(automation_router)
 app.include_router(mouse_keyboard_router)
+app.include_router(multiagent_router)
 
 STATIC = Path(__file__).parent / "static"
 SESSOES: dict[str, dict] = {}
@@ -92,6 +94,9 @@ def msg_erro_pt(exc: Exception) -> str:
 
 @app.get("/")
 async def root():
+    novo = STATIC / "index_multiagent.html"
+    if novo.exists():
+        return FileResponse(novo)
     return FileResponse(STATIC / "index.html")
 
 
