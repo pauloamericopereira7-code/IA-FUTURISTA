@@ -14,7 +14,7 @@ services:
     environment:
       - OLLAMA_URL=http://host.docker.internal:11434
       - OLLAMA_MODEL=llama3.2:3b
-      - OLLAMA_CODE=qwen2.5-coder:3b
+      - OLLAMA_CODE=llama3.2:3b
       - OLLAMA_VISION=llava:7b
       - IRIS_HOST_URL=http://host.docker.internal:8743
       - IRIS_HOST_TOKEN_FILE=/run/iris-host/token

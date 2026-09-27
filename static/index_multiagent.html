@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Futurista - Multiagente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 100vh;
+        }
+        
+        /* SIDEBAR */
+        .sidebar {
+            background: #1e293b;
+            padding: 20px;
+            border-right: 1px solid #334155;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 10px 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+            margin-bottom: 8px;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn.secondary {
+            background: #475569;
+        }
+        
+        .btn.secondary:hover {
+            background: #64748b;
+        }
+        
+        .agent-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .agent-btn {
+            padding: 12px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 12px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        
+        .agent-btn:hover {
+            background: #475569;
+            border-color: #64748b;
+        }
+        
+        .agent-btn.active {
+            background: #3b82f6;
+            border-color: #2563eb;
+        }
+        
+        /* MAIN CONTENT */
+        .main {
+            display: flex;
+            flex-direction: column;
+            background: #0f172a;
+        }
+        
+        .header {
+            background: #1e293b;
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            color: #e2e8f0;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #064e3b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message.ai {
+            justify-content: flex-start;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .message.user .message-avatar {
+            background: #3b82f6;
+            order: 2;
+        }
+        
+        .message.ai .message-avatar {
+            background: #8b5cf6;
+        }
+        
+        .message-bubble {
+            max-width: 60%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+        
+        .message.user .message-bubble {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .message.ai .message-bubble {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        
+        .agent-badge {
+            display: inline-block;
+            background: #8b5cf6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .input-area {
+            background: #1e293b;
+            padding: 15px 20px;
+            border-top: 1px solid #334155;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #1e293b;
+        }
+        
+        .btn-send {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        
+        .btn-send:hover {
+            background: #2563eb;
+        }
+        
+        .btn-send:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .loading span {
+            width: 8px;
+            height: 8px;
+            background: #60a5fa;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+        
+        .loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+        }
+        
+        .agents-active {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        
+        .agent-tag {
+            background: #8b5cf6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">🤖 IA Futurista</div>
+            
+            <!-- Agentes Disponíveis -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">🎯 Agentes Disponíveis</div>
+                <div class="agent-grid">
+                    <div class="agent-btn" onclick="ativarAgente('Interpretador')">🔍 Interpret</div>
+                    <div class="agent-btn" onclick="ativarAgente('NucleoTexto')">📝 Texto</div>
+                    <div class="agent-btn" onclick="ativarAgente('MotorProgramacao')">💻 Código</div>
+                    <div class="agent-btn" onclick="ativarAgente('MotorPesquisa')">🔎 Pesquisa</div>
+                    <div class="agent-btn" onclick="ativarAgente('GestorArquivos')">📁 Arquivos</div>
+                    <div class="agent-btn" onclick="ativarAgente('MotorVisual')">🖼️ Visual</div>
+                    <div class="agent-btn" onclick="ativarAgente('Verificador')">✅ Verif.</div>
+                    <div class="agent-btn" onclick="ativarAgente('GestorErros')">⚠️ Erros</div>
+                </div>
+            </div>
+            
+            <!-- Ações -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">⚙️ Ações</div>
+                <button class="btn" onclick="novoChat()">+ Novo Chat</button>
+                <button class="btn secondary" onclick="obterStatus()">📊 Status Agentes</button>
+            </div>
+            
+            <!-- Info -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">ℹ️ Sistema</div>
+                <div style="font-size: 12px; color: #94a3b8; line-height: 1.6;">
+                    <p>10 agentes especializados</p>
+                    <p>Orquestrador central</p>
+                    <p>Cache inteligente</p>
+                    <p>Histórico completo</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- Header -->
+            <div class="header">
+                <h1>IA Futurista - Multiagente</h1>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    Online - Ollama Conectado
+                </div>
+            </div>
+            
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai">
+                        <div class="message-avatar">🤖</div>
+                        <div>
+                            <div class="agent-badge">ORQUESTRADOR</div>
+                            <div class="message-bubble">
+                                Olá! Sou a IA Futurista com 10 agentes especializados trabalhando em conjunto. 
+                                <br><br>
+                                Como posso ajudar?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="input-area">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="inputMsg" 
+                            placeholder="Digite seu comando (ex: Refatorar função, Explicar conceito, Pesquisar...)"
+                            onkeypress="if(event.key==='Enter' && !event.shiftKey) enviarMsg()"
+                        >
+                    </div>
+                    <button class="btn-send" id="btnEnviar" onclick="enviarMsg()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8742';
+        let sessaoId = null;
+        let agentesAtivos = [];
+        
+        async function inicializar() {
+            try {
+                const res = await fetch(`${API_URL}/api/status`);
+                const data = await res.json();
+                console.log('✅ IA Futurista Online:', data);
+                adicionarMensagem('ai', `✅ Sistema inicializado com ${data.modelos.length} modelos disponíveis`, 'SISTEMA');
+            } catch (e) {
+                console.error('❌ Erro:', e);
+                adicionarMensagem('ai', '❌ Erro ao conectar com o servidor (porta 8742)', 'SISTEMA');
+            }
+        }
+        
+        async function enviarMsg() {
+            const input = document.getElementById('inputMsg');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            adicionarMensagem('user', msg, 'VOCÊ');
+            input.value = '';
+            document.getElementById('btnEnviar').disabled = true;
+            
+            adicionarLoading();
+            
+            try {
+                const res = await fetch(`${API_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mensagem: msg,
+                        sessao_id: sessaoId,
+                        modelo: 'qwen2.5-coder:7b'
+                    })
+                });
+                
+                const data = await res.json();
+                removerLoading();
+                
+                const resposta = data.resposta?.content || data.resposta || '(Sem resposta)';
+                
+                // Detectar qual agente respondeu
+                let agenteNome = 'IA FUTURISTA';
+                if (resposta.includes('refatorado')) agenteNome = 'MOTOR PROGRAMAÇÃO';
+                if (resposta.includes('Documentação')) agenteNome = 'NÚCLEO TEXTO';
+                if (resposta.includes('resultados')) agenteNome = 'MOTOR PESQUISA';
+                
+                adicionarMensagem('ai', resposta, agenteNome);
+                
+                if (!sessaoId && data.sessao_id) {
+                    sessaoId = data.sessao_id;
+                }
+            } catch (e) {
+                removerLoading();
+                adicionarMensagem('ai', `❌ Erro: ${e.message}`, 'ERRO');
+                console.error(e);
+            } finally {
+                document.getElementById('btnEnviar').disabled = false;
+                document.getElementById('inputMsg').focus();
+            }
+        }
+        
+        function adicionarMensagem(tipo, texto, agente = '') {
+            const chatArea = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${tipo}`;
+            
+            const avatar = tipo === 'user' ? '👤' : '🤖';
+            const badge = agente ? `<div class="agent-badge">${agente}</div>` : '';
+            
+            div.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div>
+                    ${badge}
+                    <div class="message-bubble">${texto}</div>
+                </div>
+            `;
+            
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function adicionarLoading() {
+            const chatArea = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'message ai';
+            div.id = 'loading-msg';
+            div.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="loading">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function removerLoading() {
+            const loading = document.getElementById('loading-msg');
+            if (loading) loading.remove();
+        }
+        
+        function ativarAgente(nome) {
+            const idx = agentesAtivos.indexOf(nome);
+            if (idx > -1) {
+                agentesAtivos.splice(idx, 1);
+            } else {
+                agentesAtivos.push(nome);
+            }
+            
+            const agentes = agentesAtivos.length > 0 
+                ? agentesAtivos.join(', ') 
+                : 'TODOS';
+            
+            adicionarMensagem('ai', `✅ Agentes ativos: ${agentes}`, 'ORQUESTRADOR');
+        }
+        
+        function novoChat() {
+            sessaoId = null;
+            document.getElementById('chatMessages').innerHTML = '';
+            adicionarMensagem('ai', '🔄 Novo chat iniciado. Como posso ajudar?', 'SISTEMA');
+        }
+        
+        async function obterStatus() {
+            try {
+                const res = await fetch(`${API_URL}/api/status`);
+                const data = await res.json();
+                const status = `
+                    ✅ Sistema Online
+                    📊 Modelos: ${data.modelos.length}
+                    🤖 Agentes: 10
+                    🔄 Orquestrador: Ativo
+                    💾 Cache: Ativo
+                `;
+                adicionarMensagem('ai', status, 'SISTEMA');
+            } catch (e) {
+                adicionarMensagem('ai', `❌ Erro ao obter status: ${e.message}`, 'ERRO');
+            }
+        }
+        
+        window.onload = inicializar;
+    </script>
+</body>
+</html>
