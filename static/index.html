@@ -3,55 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IA Futurista</title>
+  <title>Íris</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="menubar">
-    <span>File</span><span>Edit</span><span>View</span><span>Help</span>
+    <span>Arquivo</span><span>Editar</span><span>Visualizar</span><span>Ajuda</span>
   </div>
 
   <div class="shell">
     <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark">Í</div>
+        <div><strong>Íris</strong><small>Assistente local</small></div>
+      </div>
       <div class="sidebar-nav">
         <button class="nav-item" id="btn-new-chat">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          New Chat
+          Nova conversa
         </button>
-        <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Search</button>
-        <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>Automations</button>
-        <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Customize</button>
       </div>
 
-      <div class="section-label">Repositories</div>
-      <div class="repo-status">No Repo</div>
-
-      <div class="section-label">Histórico</div>
+      <div class="section-label">Conversas</div>
       <div class="chat-history" id="chat-history"></div>
 
       <div class="sidebar-bottom">
-        <div class="progress-card">
-          Getting Started <strong id="progress-text">2/3</strong>
-          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="pc-access">
+          <label class="pc-access-label" for="pc-access-toggle">
+            <input id="pc-access-toggle" type="checkbox" />
+            <span>Controle do computador</span>
+          </label>
+          <span class="pc-access-status" id="pc-access-status">Conferindo conexão...</span>
         </div>
-        <button class="slack-btn">💬 Connect Slack</button>
+        <div class="system-state">
+          <span class="status-indicator" id="status-indicator"></span>
+          <span id="capability-status">Verificando modelos...</span>
+        </div>
         <div class="user-row">
           <div class="avatar" id="user-avatar">PA</div>
           <span>Paulo Americo</span>
-          <span style="margin-left:auto;opacity:.5">⚙</span>
         </div>
       </div>
     </aside>
 
     <main class="main">
       <header class="header">
-        <div class="header-title" id="chat-title">IA Futurista · Auto</div>
+        <div class="header-title" id="chat-title">Nova conversa</div>
         <div class="header-right">
-          <button class="icon-btn" title="Cloud">☁</button>
-          <button class="ide-btn" onclick="window.open('/static/ide.html','_blank')">IDE ↗</button>
-          <button class="icon-btn">⋯</button>
+          <span class="model-badge" id="model-label">Ollama</span>
+          <button class="ide-btn" onclick="window.open('/static/ide.html','_blank')">Abrir IDE ↗</button>
         </div>
       </header>
 
@@ -60,26 +62,39 @@
       </div>
 
       <div class="input-area">
-        <div class="input-toolbar">
-          <button class="chip">Create repo</button>
-          <button class="chip" id="design-mode">Design Mode</button>
+        <div class="attachment-preview" id="attachment-preview" hidden>
+          <img id="attachment-image" alt="Imagem selecionada" />
+          <span id="attachment-name"></span>
+          <button class="remove-attachment" id="remove-attachment" type="button" title="Remover imagem">×</button>
+        </div>
+        <div class="agent-row">
+          <label for="agent-select">Agente</label>
+          <select id="agent-select">
+            <option value="auto">Automático</option>
+            <option value="geral">Geral</option>
+            <option value="programacao">Programação</option>
+            <option value="pesquisa">Pesquisa na web</option>
+            <option value="visao">Análise de imagem</option>
+            <option value="automacao">Automação</option>
+            <option value="design">Design de interface</option>
+            <option value="dados">Análise de dados</option>
+            <option value="escrita">Escrita e revisão</option>
+            <option value="suporte_windows">Suporte Windows</option>
+          </select>
         </div>
         <div class="input-box">
-          <button class="send-btn" style="font-size:20px">+</button>
-          <textarea id="chat-input" rows="1" placeholder="Send follow-up"></textarea>
-          <button class="send-btn" id="btn-send">↑</button>
+          <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+          <button class="attach-btn" id="btn-image" type="button" title="Anexar imagem" aria-label="Anexar imagem">+</button>
+          <textarea id="chat-input" rows="1" placeholder="Mensagem para Íris"></textarea>
+          <button class="send-btn" id="btn-send" type="button" title="Enviar mensagem" aria-label="Enviar mensagem">↑</button>
         </div>
       </div>
 
       <div class="footer-bar">
         <div class="footer-left">
-          <span>⎇ main</span>
-          <span id="cloud-status">☁ Cloud</span>
+          <span id="cloud-status">Local</span>
         </div>
-        <div class="footer-right">
-          <span id="model-label">Auto</span>
-          <span>🎤</span>
-        </div>
+        <div class="footer-right"><span>Suas conversas ficam nesta sessão</span></div>
       </div>
     </main>
   </div>

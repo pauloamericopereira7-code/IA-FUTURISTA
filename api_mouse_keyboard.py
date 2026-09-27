@@ -1,12 +1,24 @@
 # -*- coding: utf-8 -*-
 """API endpoints para controle de mouse e teclado."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+import agente as ag
 from mouse_keyboard_control import execute_mouse_keyboard_action
 
-router = APIRouter(prefix="/api/mouse_keyboard", tags=["mouse_keyboard"])
+
+
+def require_pc_access():
+    if not ag.PC_ACCESS_ENABLED:
+        raise HTTPException(status_code=403, detail="Controle do PC desativado.")
+
+
+router = APIRouter(
+    prefix="/api/mouse_keyboard",
+    tags=["mouse_keyboard"],
+    dependencies=[Depends(require_pc_access)],
+)
 
 
 class MouseKeyboardRequest(BaseModel):

@@ -2,35 +2,35 @@
 
 Agente Cursor local via Ollama.
 
-## Docker (recomendado no seu PC)
+## Início rápido no Windows
 
-Seu Docker Desktop já tem:
+Para abrir o chat com a ponte de mouse/teclado, use `abrir_ia.bat` ou o atalho **Íris IA** criado na Área de Trabalho. O inicializador sobe a ponte Windows autenticada, inicia o contêiner e abre http://localhost:8742.
 
-| Container | Porta |
-|-----------|-------|
-| cursor-docker | 9090 |
-| open-webui | 3030 |
-| **ia-futurista** | **8742** ← este projeto |
+O pacote local criado para esta máquina fica em `Desktop\IrisIA`; `Abrir_Iris.bat` chama o inicializador do projeto em `Downloads\IA_Futurista\futurista`. Se o projeto for movido, atualize o caminho `PROJECT` nesse arquivo.
 
-```bash
-cd futurista
-DOCKER.bat
-# ou: docker compose up -d --build
+O usuário e o token da ponte são locais. `.iris_host_token` é ignorado pelo Git e montado como somente leitura no contêiner. A porta web fica limitada a `127.0.0.1`; a ponte aceita somente o contêiner autenticado na rede Docker configurada.
+
+## Modelos e custos
+
+A instalação padrão usa Ollama local: `llama3.2:3b` para conversa e `llava:7b` para análise de imagens. Programação e Design usam `qwen2.5-coder:3b` quando esse modelo estiver instalado; caso contrário, o app usa o modelo padrão.
+
+```powershell
+ollama pull llama3.2:3b
+ollama pull llava:7b
+ollama pull qwen2.5-coder:3b
 ```
 
-Abre em http://127.0.0.1:8742
+Inferência local não consome créditos de API paga. Isso não altera limites de crédito de GitHub Copilot ou de outros serviços externos. Geração de imagens e vídeos ainda não está conectada.
 
-O container conecta no Ollama do Windows via `host.docker.internal:11434`.
-Antes rode: `ollama serve` e `ollama pull qwen2.5-coder:7b`
+## Pastas e acesso ao PC
 
-## Sem Docker
+O agente pode gravar sem confirmação por arquivo em `projetos`, Área de Trabalho, Documentos, Downloads e Imagens. O controle de mouse/teclado fica disponível pelo interruptor **Controle do computador** na barra lateral. Desative-o para revogar a permissão.
 
-```bash
-pip install -r requirements.txt
-python -m uvicorn server:app --host 0.0.0.0 --port 8742
-```
+Os mounts do Compose usam `C:\Users\Administrador`; em outra conta Windows, atualize os caminhos de volume e `IRIS_WINDOWS_USER_ROOT` em `docker-compose.yml`.
 
-Ou clique **`INSTALAR.bat`** → instala em `D:\IA_Futurista`
+## Execução sem a ponte
+
+É possível iniciar apenas a API/chat com `docker compose up -d --build`, mas o controle do desktop requer a ponte Windows iniciada pelo `abrir_ia.bat`.
 
 ## Windows — primeira instalacao (pasta ainda nao existe)
 

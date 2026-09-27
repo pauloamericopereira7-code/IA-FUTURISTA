@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """Backend FastAPI — IA Futurista."""
 
+import base64
 import time
 import uuid
 from pathlib import Path
+from typing import Literal
 
 import requests
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -30,10 +32,19 @@ class ChatReq(BaseModel):
     mensagem: str
     sessao_id: str | None = None
     modelo: str | None = None
+    imagem_b64: str | None = None
+    agente: Literal[
+        "auto", "geral", "programacao", "pesquisa", "visao", "automacao",
+        "design", "dados", "escrita", "suporte_windows",
+    ] = "auto"
 
 
 class NovaSessaoReq(BaseModel):
     titulo: str = "Novo chat"
+
+
+class AcessoPCReq(BaseModel):
+    enabled: bool
 
 
 def ollama_ok_com_retry(tentativas: int = 3) -> bool:
@@ -46,9 +57,20 @@ def ollama_ok_com_retry(tentativas: int = 3) -> bool:
 
 def deve_preview(resposta: str, pergunta: str) -> bool:
     p = pergunta.lower()
-    if any(w in p for w in ("preview", "abra", "abrir", "interface", "app", "site")):
-        return True
-    return "```" in resposta and len(resposta) > 200
+    return any(w in p for w in ("preview", "prévia", "pre-visualizar", "pré-visualizar"))
+
+
+def validar_imagem(imagem_b64: str) -> tuple[str, str]:
+    if len(imagem_b64) > 11_184_812:
+        raise ValueError("A imagem excede o limite de 8 MB.")
+    dados = base64.b64decode(imagem_b64, validate=True)
+    if dados.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png", imagem_b64
+    if dados.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg", imagem_b64
+    if dados[:4] == b"RIFF" and dados[8:12] == b"WEBP":
+        return "image/webp", imagem_b64
+    raise ValueError("Formato de imagem inválido. Use PNG, JPEG ou WebP.")
 
 
 def msg_erro_pt(exc: Exception) -> str:
@@ -76,14 +98,31 @@ async def root():
 @app.get("/api/status")
 async def status():
     online = ag.ollama_online()
+    modelos = ag.listar_modelos() if online else [ag.OLLAMA_MODEL]
     return {
         "ollama": online,
-        "modelos": ag.listar_modelos() if online else [ag.OLLAMA_MODEL],
+        "modelos": modelos,
         "modelo_padrao": ag.OLLAMA_MODEL,
+        "modelo_codigo": ag.OLLAMA_CODE,
+        "capacidades": {
+            "visao": online and ag.OLLAMA_VISION in modelos,
+            "geracao_imagem": False,
+            "geracao_video": False,
+        },
+        "agentes": [{"id": chave, "nome": perfil["nome"]} for chave, perfil in ag.AGENTES.items()],
         "workspace": ag.WORKSPACES,
+        "acesso_pc": ag.estado_acesso_pc(),
         "identidade": IDENTIDADE,
         "boas_vindas": MENSAGEM_BOAS_VINDAS,
     }
+
+
+@app.post("/api/acesso-pc")
+async def configurar_acesso_pc(req: AcessoPCReq):
+    if req.enabled and not ag.host_companion_available():
+        raise HTTPException(status_code=503, detail="A ponte Windows não está conectada.")
+    ag.configurar_acesso_pc(req.enabled)
+    return ag.estado_acesso_pc()
 
 
 def _sessao_inicial() -> dict:
@@ -132,16 +171,31 @@ async def chat(req: ChatReq):
         if not ollama_ok_com_retry():
             raise ConnectionError("Ollama offline")
 
+        imagem_b64 = req.imagem_b64
+        if imagem_b64:
+            mime, imagem_b64 = validar_imagem(imagem_b64)
+            if ag.OLLAMA_VISION not in ag.listar_modelos():
+                raise RuntimeError(f"Modelo visual não instalado: {ag.OLLAMA_VISION}")
+            s["msgs"][-1]["imagem"] = f"data:{mime};base64,{imagem_b64}"
+
+        perfil = ag.escolher_agente(req.agente, req.mensagem, bool(imagem_b64))
+        modelo = req.modelo or ag.OLLAMA_MODEL
+        if imagem_b64:
+            modelo = ag.OLLAMA_VISION
+        elif perfil in ("programacao", "design") and ag.OLLAMA_CODE in ag.listar_modelos():
+            modelo = ag.OLLAMA_CODE
+
         resposta, logs = ag.rodar_agente(
             pergunta=req.mensagem,
             historico_msgs=s["agente"],
             placeholder=None,
-            motores=["Google Search API", "DuckDuckGo Engine"],
+            motores=["Google Search API", "DuckDuckGo Engine"] if perfil == "pesquisa" else [],
             codigo_aberto="",
             caminho_aberto=None,
-            imagem_b64_val=None,
-            modelo=req.modelo or ag.OLLAMA_MODEL,
+            imagem_b64_val=imagem_b64,
+            modelo=modelo,
             max_iteracoes=3,
+            perfil_agente=perfil,
         )
         s["agente"].append({"role": "user", "content": req.mensagem})
         s["agente"].append({"role": "assistant", "content": resposta})
@@ -152,13 +206,13 @@ async def chat(req: ChatReq):
             if titulo.lower() not in ("ola", "olá", "oi", "ok"):
                 s["titulo"] = titulo
 
-        ag.auto_salvar_codigo(resposta, None)
         elapsed = max(1, int(time.time() - t0))
 
         ai: dict = {
             "role": "assistant",
             "content": resposta or "Pronto! Como posso ajudar mais?",
             "worked": elapsed,
+            "agente": perfil,
         }
         if deve_preview(resposta, req.mensagem):
             ai["preview"] = {

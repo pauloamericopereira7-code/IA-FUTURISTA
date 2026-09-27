@@ -3,12 +3,25 @@ services:
     build: .
     container_name: ia-futurista
     ports:
-      - "8742:8742"
+      - "127.0.0.1:8742:8742"
     volumes:
       - ./projetos:/app/projetos
+      - "C:/Users/Administrador/Desktop:/host/Desktop"
+      - "C:/Users/Administrador/Documents:/host/Documents"
+      - "C:/Users/Administrador/Downloads:/host/Downloads"
+      - "C:/Users/Administrador/Pictures:/host/Pictures"
+      - ./.iris_host_token:/run/iris-host/token:ro
     environment:
       - OLLAMA_URL=http://host.docker.internal:11434
-      - OLLAMA_MODEL=qwen2.5-coder:7b
+      - OLLAMA_MODEL=llama3.2:3b
+      - OLLAMA_CODE=qwen2.5-coder:3b
+      - OLLAMA_VISION=llava:7b
+      - IRIS_HOST_URL=http://host.docker.internal:8743
+      - IRIS_HOST_TOKEN_FILE=/run/iris-host/token
+      - IRIS_DOCKER_SUBNET=172.22.0.0/16
+      - IRIS_PC_ACCESS_ENABLED=true
+      - IRIS_WINDOWS_USER_ROOT=C:/Users/Administrador
+      - FUTURISTA_WORKSPACES=/host/Desktop:/host/Documents:/host/Downloads:/host/Pictures
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

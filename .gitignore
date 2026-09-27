@@ -28,7 +28,6 @@ cache/
 Thumbs.db
 
 # Docker
-.dockerignore
 docker-compose.override.yml
 
 # Logs
@@ -41,6 +40,7 @@ projetos/
 # Secrets
 .env
 .env.local
+.iris_host_token
 config/slack.json
 
 # Build

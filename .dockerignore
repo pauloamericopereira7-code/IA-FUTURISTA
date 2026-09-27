@@ -1,0 +1,9 @@
+.git/
+__pycache__/
+*.py[cod]
+.venv/
+.host-venv/
+.iris_host_token
+projetos/
+cache/
+host_companion.py
