@@ -584,6 +584,25 @@ class Orquestrador:
             GestorErros(),
         ]
         
+        # Adicionar novos agentes (5 especializados)
+        try:
+            from agentes.agentes_simples import (
+                AgenteContagemSimples,
+                AgenteSinteseSimples,
+                AgenteValidacaoSimples,
+                AgenteTraducaoSimples,
+                AgenteSentimentSimples
+            )
+            agentes.extend([
+                AgenteContagemSimples(),
+                AgenteSinteseSimples(),
+                AgenteValidacaoSimples(),
+                AgenteTraducaoSimples(),
+                AgenteSentimentSimples()
+            ])
+        except Exception as e:
+            pass  # Silencioso se nao carregar
+        
         for agente in agentes:
             self.agentes[agente.nome] = agente
             self.logger.info(f"Agente inicializado: {agente.nome}")
